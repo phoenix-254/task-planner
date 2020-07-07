@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import Authenticator from '../authentication/Authenticator'
 
-import { Button } from 'semantic-ui-react'
+import { Button } from 'react-bootstrap'
 
 interface LogInProps {
   auth: Authenticator
@@ -18,10 +18,10 @@ export class LogInView extends React.PureComponent<LogInProps, LogInState> {
   render() {
     return (
       <div>
-        <h1>Please log in</h1>
-
-        <Button onClick={this.onLogin} size="huge" color="olive">
-          Log in
+        <h3>Please log in to continue...</h3>
+        <br/><br/>
+        <Button style={{padding: '8px 80px'}} variant="dark" size="lg" onClick={this.onLogin}>
+          Log In
         </Button>
       </div>
     )

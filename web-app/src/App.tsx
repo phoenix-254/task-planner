@@ -4,6 +4,8 @@ import { Link, Route, Router, Switch } from 'react-router-dom'
 
 import { Grid, Menu, Segment } from 'semantic-ui-react'
 
+import { Navbar, Nav } from 'react-bootstrap'
+
 import Authenticator from './authentication/Authenticator'
 
 import { LogInView } from './components/LogInView'
@@ -40,13 +42,21 @@ export default class App extends Component<AppProps, AppState> {
   render() {
     return (
       <div>
-        <Segment style={{ padding: '8em 0em' }} vertical>
+        <Grid container stackable verticalAlign="middle">
+          <Grid.Row>
+            <Grid.Column width={16}>
+              <Router history={this.props.history}>
+                {this.generateMenu()}
+              </Router>
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
+
+        <Segment style={{ padding: '4em 0em' }} vertical>
           <Grid container stackable verticalAlign="middle">
             <Grid.Row>
               <Grid.Column width={16}>
                 <Router history={this.props.history}>
-                  {this.generateMenu()}
-
                   {this.generateCurrentPage()}
                 </Router>
               </Grid.Column>
@@ -59,26 +69,29 @@ export default class App extends Component<AppProps, AppState> {
 
   generateMenu() {
     return (
-      <Menu>
-        <Menu.Item name="home">
-          <Link to="/">Home</Link>
-        </Menu.Item>
+      <Navbar bg="dark" variant="dark">
+        <Navbar.Brand href="/">Task Planner</Navbar.Brand>
+        <Nav className="ml-auto">
+          <Menu.Item name="home">
+            <Link to="/" className="nav-link" style={{ textDecoration: 'none', cursor: 'pointer' }}>Home</Link>
+          </Menu.Item>
 
-        <Menu.Menu position="right">{this.logInLogOutButton()}</Menu.Menu>
-      </Menu>
+          <Menu.Menu>{this.logInLogOutButton()}</Menu.Menu>
+        </Nav>
+      </Navbar>
     )
   }
 
   logInLogOutButton() {
     if (this.props.authenticator.isAuthenticated()) {
       return (
-        <Menu.Item name="logout" onClick={this.handleLogout}>
+        <Menu.Item name="logout" className="nav-link" style={{cursor: 'pointer'}} onClick={this.handleLogout}>
           Log Out
         </Menu.Item>
       )
     } else {
       return (
-        <Menu.Item name="login" onClick={this.handleLogin}>
+        <Menu.Item name="login" className="nav-link" style={{cursor: 'pointer'}} onClick={this.handleLogin}>
           Log In
         </Menu.Item>
       )

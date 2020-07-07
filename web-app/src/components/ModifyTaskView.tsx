@@ -78,11 +78,11 @@ export class ModifyTaskView extends React.PureComponent<ModifyTaskProps, ModifyT
   render() {
     return (
       <div>
-        <h1>Upload new image</h1>
-
+        <h3>Upload a new image</h3>
+        <br/>
+        <br/>
         <Form onSubmit={this.handleSubmit}>
           <Form.Field>
-            <label>File</label>
             <input
               type="file"
               accept="image/*"
@@ -90,7 +90,8 @@ export class ModifyTaskView extends React.PureComponent<ModifyTaskProps, ModifyT
               onChange={this.handleFileChange}
             />
           </Form.Field>
-
+          <br/>
+          <br/>
           {this.renderButton()}
         </Form>
       </div>
@@ -103,6 +104,7 @@ export class ModifyTaskView extends React.PureComponent<ModifyTaskProps, ModifyT
         {this.state.uploadState === UploadState.FetchingPresignedUrl && <p>Uploading image metadata</p>}
         {this.state.uploadState === UploadState.UploadingFile && <p>Uploading image</p>}
         <Button
+          variant="outline-secondary"
           loading={this.state.uploadState !== UploadState.NoUpload}
           type="submit"
         >

@@ -3,7 +3,10 @@ import { History } from 'history'
 import update from 'immutability-helper'
 import * as React from 'react'
 
-import { Button, Checkbox, Divider, Grid, Header, Icon, Input, Image, Loader } from 'semantic-ui-react'
+import { Checkbox, Divider, Grid, Header, Icon, Image, Loader } from 'semantic-ui-react'
+import { Button as SemanticButton } from 'semantic-ui-react'
+
+import { Button, InputGroup, FormControl } from 'react-bootstrap'
 
 import { GetAllTasks, CreateNewTask, UpdateTask, DeleteTask } from '../api-requests/apiRequestHandler'
 
@@ -39,7 +42,7 @@ export class TasksView extends React.PureComponent<TasksProps, TasksState> {
     this.props.history.push(`/tasks/${taskId}/edit`)
   }
 
-  onTaskCreate = async (event: React.ChangeEvent<HTMLButtonElement>) => {
+  onTaskCreate = async (event: React.MouseEvent<HTMLButtonElement>) => {
     try {
       const dueDate = this.calculateDueDate()
       
@@ -63,7 +66,7 @@ export class TasksView extends React.PureComponent<TasksProps, TasksState> {
       await DeleteTask(this.props.authenticator.getIdToken(), taskId)
 
       this.setState({
-        tasks: this.state.tasks.filter(task => task.taskId != taskId)
+        tasks: this.state.tasks.filter(task => task.taskId !== taskId)
       })
     } catch {
       alert('Task deletion failed')
@@ -108,7 +111,7 @@ export class TasksView extends React.PureComponent<TasksProps, TasksState> {
   render() {
     return (
       <div>
-        <Header as="h1">My Tasks</Header>
+        <Header as="h3">My Tasks</Header>
 
         {this.renderCreateTaskView()}
 
@@ -119,21 +122,15 @@ export class TasksView extends React.PureComponent<TasksProps, TasksState> {
 
   renderCreateTaskView() {
     return (
-      <Grid.Row>
-        <Grid.Column width={16}>
-          <Input
-            action={{
-              color: 'teal',
-              labelPosition: 'left',
-              icon: 'add',
-              content: 'New task',
-              onClick: this.onTaskCreate
-            }}
-            fluid
-            actionPosition="left"
-            placeholder="To get into Google..."
-            onChange={this.handleNameChange}
-          />
+      <Grid.Row style={{padding: '2em'}}>
+        <Grid.Column style={{width: '100%'}}>
+          <InputGroup>
+            <InputGroup.Prepend>
+              <Button variant="outline-secondary" onClick={this.onTaskCreate}>Add New Task</Button>
+            </InputGroup.Prepend>
+            <FormControl aria-describedby="basic-addon1" 
+              placeholder="Task title" onChange={this.handleNameChange} />
+          </InputGroup>
         </Grid.Column>
         <Grid.Column width={16}>
           <Divider />
@@ -162,7 +159,7 @@ export class TasksView extends React.PureComponent<TasksProps, TasksState> {
 
   renderTaskItems() {
     return (
-      <Grid padded>
+      <Grid style={{paddingLeft: '3em'}}>
         {this.state.tasks.map((task, pos) => {
           return (
             <Grid.Row key={task.taskId}>
@@ -173,28 +170,28 @@ export class TasksView extends React.PureComponent<TasksProps, TasksState> {
                 />
               </Grid.Column>
               <Grid.Column width={10} verticalAlign="middle">
-                {task.title}
+                <b>{task.title}</b>
               </Grid.Column>
               <Grid.Column width={3} floated="right">
-                {task.dueDate}
+                <b>Due on: {task.dueDate}</b>
               </Grid.Column>
               <Grid.Column width={1} floated="right">
-                <Button
+                <SemanticButton
                   icon
                   color="blue"
                   onClick={() => this.onEditButtonClick(task.taskId)}
                 >
                   <Icon name="pencil" />
-                </Button>
+                </SemanticButton>
               </Grid.Column>
               <Grid.Column width={1} floated="right">
-                <Button
+                <SemanticButton
                   icon
                   color="red"
                   onClick={() => this.onDeleteTask(task.taskId)}
                 >
                   <Icon name="delete" />
-                </Button>
+                </SemanticButton>
               </Grid.Column>
               {task.imageUrl && (
                 <Image src={task.imageUrl} size="small" wrapped />

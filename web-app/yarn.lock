@@ -8840,7 +8840,7 @@ react-app-polyfill@^1.0.6:
     regenerator-runtime "^0.13.3"
     whatwg-fetch "^3.0.0"
 
-react-bootstrap@^1.0.1:
+react-bootstrap@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/react-bootstrap/-/react-bootstrap-1.1.0.tgz#7a427b5d2853e37b210006feb13bbe4da0b3b13a"
   integrity sha512-TOzLlYQRyQnMeYycqA9telJMZy4FGB3/jPi9q6xruVjGfHjnTIMWKCz547fmnEF/ewSD0YaY/mXc5TridvqUAQ==
