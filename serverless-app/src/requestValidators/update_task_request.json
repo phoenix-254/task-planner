@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "UpdateTaskRequestSchema",
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dueDate": {
+      "type": "string",
+      "minLength": 1
+    },
+    "isCompleted": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "title", 
+    "dueDate",
+    "isCompleted"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "CreateTaskRequestSchema",
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dueDate": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "title", 
+    "dueDate"
+  ],
+  "additionalProperties": false
+}

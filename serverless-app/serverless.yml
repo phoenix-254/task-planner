@@ -1,0 +1,180 @@
+service:
+  name: task-planner
+
+plugins:
+  - serverless-webpack
+  - serverless-plugin-tracing
+  - serverless-iam-roles-per-function
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-2'}
+
+  tracing:
+    lambda: true
+    apiGateway: true
+
+  environment:
+    TASKS_TBL: tasks-${self:provider.stage}
+    TASKS_CREATED_AT_IDX: tasks-created-at-idx
+    IMAGES_BUCKET: task-images-${self:provider.stage}
+    SIGNED_URL_EXPIRY: 600
+
+functions:
+  Auth:
+    handler: src/lambda/Authorizer.handler
+
+  GetTasks:
+    handler: src/lambda/GetTasks.handler
+    events:
+      - http:
+          authorizer: Auth
+          method: get
+          path: tasks
+          cors: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TASKS_TBL}/index/${self:provider.environment.TASKS_CREATED_AT_IDX}
+
+  CreateTask:
+    handler: src/lambda/CreateTask.handler
+    events:
+      - http:
+          authorizer: Auth
+          method: post
+          path: tasks
+          cors: true
+          request:
+            schema:
+              application/json: ${file(src/requestValidators/create_task_request.json)}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TASKS_TBL}
+
+  UpdateTask:
+    handler: src/lambda/UpdateTask.handler
+    events:
+      - http:
+          authorizer: Auth
+          method: patch
+          path: tasks/{taskId}
+          cors: true
+          request:
+            schema:
+              application/json: ${file(src/requestValidators/update_task_request.json)}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:UpdateItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TASKS_TBL}
+
+  DeleteTask:
+    handler: src/lambda/DeleteTask.handler
+    events:
+      - http:
+          authorizer: Auth
+          method: delete
+          path: tasks/{taskId}
+          cors: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:DeleteItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TASKS_TBL}
+
+  GenerateUploadImageUrl:
+    handler: src/lambda/GenerateUploadImageUrl.handler
+    events:
+      - http:
+          authorizer: Auth
+          method: post
+          path: tasks/{taskId}/image
+          cors: true
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:UpdateItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TASKS_TBL}
+      - Effect: Allow
+        Action:
+          - s3:GetObject
+          - s3:PutObject
+        Resource: arn:aws:s3:::${self:provider.environment.IMAGES_BUCKET}/*
+
+resources:
+  Resources:    
+    # A Bucket to store images for tasks
+    ImagesBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.IMAGES_BUCKET}
+        CorsConfiguration:
+          CorsRules:
+            -
+              AllowedOrigins: 
+                - "*"
+              AllowedHeaders:
+                - "*"
+              AllowedMethods:
+                - GET
+                - PUT
+                - DELETE
+                - POST
+                - HEAD
+              MaxAge: 3000
+
+    # Policy to allow downloading images from the bucket
+    ImagesBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: ImagesBucketPolicy
+          Version: "2012-10-17"
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
+              Principal: "*"
+              Action: 
+                - s3:GetObject
+              Resource: arn:aws:s3:::${self:provider.environment.IMAGES_BUCKET}/*
+        Bucket: !Ref ImagesBucket
+
+    # Tasks DynamoDB table
+    TasksTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.TASKS_TBL}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: taskId
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+          - AttributeName: taskId
+            KeyType: RANGE
+        # LSI - Useful in getting all the items for a user sorted by creation date
+        LocalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.TASKS_CREATED_AT_IDX}
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+
